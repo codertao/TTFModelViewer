@@ -1,7 +1,7 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio 2012
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "TachyonExplorer", "TachyonExplorer.csproj", "{82AACC49-FFDD-44A3-BEB9-B4A615BCF969}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "TachyonExplorer", "TachyonExplorer\TachyonExplorer.csproj", "{82AACC49-FFDD-44A3-BEB9-B4A615BCF969}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
