@@ -10,6 +10,8 @@ namespace TachyonExplorer.FileAccess.PFF
 {
     public class PFFFile : BaseToString, IFileAccess
     {
+        public string ConstructionParams { get; private set; }
+
         private FileStream fs;
         private BinaryReader r;
         private Dictionary<string, PFFFileEntry> entryLookup; 
@@ -20,6 +22,7 @@ namespace TachyonExplorer.FileAccess.PFF
 
         public PFFFile(string filepath)
         {
+            ConstructionParams = filepath;
             fs = new FileStream(filepath, FileMode.Open, System.IO.FileAccess.Read, FileShare.Read, 1024, FileOptions.RandomAccess);
             r = new BinaryReader(fs);
             ReadHeader();

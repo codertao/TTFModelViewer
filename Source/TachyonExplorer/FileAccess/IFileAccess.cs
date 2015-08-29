@@ -8,6 +8,7 @@ namespace TachyonExplorer.FileAccess
 {
     public interface IFileAccess
     {
+        string ConstructionParams { get; }
         List<string> GetFiles();
         byte[] GetContent(string fileName);
     }

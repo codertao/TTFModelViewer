@@ -4,6 +4,8 @@ namespace TachyonExplorer.FileAccess
 {
     public class BlankFileAccess : IFileAccess
     {
+        public string ConstructionParams { get { return "";  } }
+
         public List<string> GetFiles()
         {
             return new List<string>();

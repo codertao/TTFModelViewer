@@ -52,6 +52,7 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="AppSettings.cs" />
     <Compile Include="CBIN\CBINFile.cs" />
     <Compile Include="CBIN\CBINGroup.cs" />
     <Compile Include="CBIN\CBINItem.cs" />
@@ -60,6 +61,7 @@
     <Compile Include="Deserializers\BaseToString.cs" />
     <Compile Include="Extensions.cs" />
     <Compile Include="FileAccess\BlankFileAccess.cs" />
+    <Compile Include="FileAccess\DirectoryFileAccess.cs" />
     <Compile Include="FileAccess\IFileAccess.cs" />
     <Compile Include="FileAccess\PFF\PFFFile.cs" />
     <Compile Include="FileAccess\PFF\PFFFileEntry.cs" />

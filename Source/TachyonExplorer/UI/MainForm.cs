@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Configuration;
 using System.Diagnostics;
 using System.Drawing;
 using System.IO;
@@ -30,6 +29,7 @@ namespace TachyonExplorer.UI
             sw = Stopwatch.StartNew();
             camera = new Camera(new Point3D(-10,0,0), Vector3D.UnitZ, Vector3D.UnitX);
             LoadSettings();
+            Closing += (sender, args) => SaveSettings();
         }
 
         private void glControl_Load(object sender, System.EventArgs e)
@@ -143,17 +143,49 @@ namespace TachyonExplorer.UI
 
         private void LoadSettings()
         {
-            LoadPFF(@"D:\Steam\steamapps\common\Tachyon The Fringe\Tachyon.pff");
+            TryLoadPFF(AppSettings.GetString("PFF_PATH"));
+            while (fileAccess == null)
+            {
+                OpenFileDialog ofd = new OpenFileDialog();
+                ofd.CheckFileExists = true;
+                ofd.Multiselect = false;
+                ofd.Title = "Choose a PFF File";
+                ofd.Filter = "PFF File (*.pff)|*.pff";
+                if (ofd.ShowDialog() == DialogResult.OK)
+                {
+                    TryLoadPFF(ofd.FileName);
+                }
+                else
+                {
+                    Environment.Exit(0);
+                }
+            }
         }
 
         private void SaveSettings()
         {
-            
+            if (fileAccess != null)
+                AppSettings.SetString("PFF_PATH", fileAccess.ConstructionParams);
+            AppSettings.Save();
         }
 
-        private void LoadPFF(string path)
+        private bool TryLoadPFF(string path)
         {
-            fileAccess = new PFFFile(path);
+            try
+            {
+                if (Directory.Exists(path))
+                    fileAccess = new DirectoryFileAccess(path);
+                else if (File.Exists(path))
+                    fileAccess = new PFFFile(path);
+                else
+                    return false;
+                return true;
+            }
+            catch (Exception e)
+            {
+                Console.WriteLine(e);
+                return false;
+            }
         }
     }
 }
