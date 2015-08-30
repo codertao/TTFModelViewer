@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Xml.Serialization;
+using Nexus;
 
 namespace TachyonExplorer
 {
@@ -62,6 +63,51 @@ namespace TachyonExplorer
         public static void SetString(string key, string value)
         {
             settings[key] = value;
+        }
+
+        public static float[] GetFloats(string key, float[] defs = null)
+        {
+            if (settings.ContainsKey(key))
+            {
+                string[] vals = settings[key].Split('\t');
+                float[] fVals = new float[vals.Length];
+                for (int i = 0; i < vals.Length; i++)
+                    if (!Single.TryParse(vals[i], out fVals[i]))
+                        return defs;
+                return fVals;
+            }
+            return defs;
+        }
+
+        public static void SetFloats(string key, float[] fVals)
+        {
+            SetString(key, fVals == null ? "null" : String.Join("\t", fVals.Select(f=>f.ToString())));
+        }
+
+
+
+        public static Point3D GetPoint3D(string key, Point3D def = default(Point3D))
+        {
+            var vals = GetFloats(key);
+            return vals == null || vals.Length != 3 ? def : new Point3D(vals[0], vals[1], vals[2]);
+        }
+
+        public static void SetPoint3D(string key, Point3D value)
+        {
+            SetFloats(key, new []{value.X, value.Y, value.Z});
+        }
+
+
+
+        public static Vector3D GetVector3D(string key, Vector3D def = default(Vector3D))
+        {
+            var vals = GetFloats(key);
+            return vals == null || vals.Length != 3 ? def : new Vector3D(vals[0], vals[1], vals[2]);
+        }
+
+        public static void SetVector3D(string key, Vector3D value)
+        {
+            SetFloats(key, new[] { value.X, value.Y, value.Z });
         }
     }
 

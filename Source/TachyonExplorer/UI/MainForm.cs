@@ -160,12 +160,18 @@ namespace TachyonExplorer.UI
                     Environment.Exit(0);
                 }
             }
+            camera.Position = AppSettings.GetPoint3D("CAM_POS", camera.Position);
+            camera.Up = AppSettings.GetVector3D("CAM_UP", camera.Up);
+            camera.Forward = AppSettings.GetVector3D("CAM_FORWARD", camera.Forward);
         }
 
         private void SaveSettings()
         {
             if (fileAccess != null)
                 AppSettings.SetString("PFF_PATH", fileAccess.ConstructionParams);
+            AppSettings.SetPoint3D("CAM_POS", camera.Position);
+            AppSettings.SetVector3D("CAM_UP", camera.Up);
+            AppSettings.SetVector3D("CAM_FORWARD", camera.Forward);
             AppSettings.Save();
         }
 
