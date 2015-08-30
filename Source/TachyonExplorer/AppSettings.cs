@@ -41,7 +41,7 @@ namespace TachyonExplorer
         {
             try
             {
-                using (var stream = File.OpenWrite(SettingsFile))
+                using (var stream = File.Open(SettingsFile, FileMode.Create))
                 {
                     var data = settings.Select(kvp => new AppSetting{Key=kvp.Key, Value=kvp.Value}).ToList();
                     var ser = new XmlSerializer(typeof(List<AppSetting>));
