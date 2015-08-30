@@ -68,6 +68,7 @@
     <Compile Include="FileAccess\PFF\PFFFooter.cs" />
     <Compile Include="FileAccess\PFF\PFFHeader.cs" />
     <Compile Include="Models\Face.cs" />
+    <Compile Include="Models\Loaders\OCFLoader.cs" />
     <Compile Include="Models\Loaders\PAKLoader.cs" />
     <Compile Include="Models\Material.cs" />
     <Compile Include="Models\Mesh.cs" />

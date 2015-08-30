@@ -9,6 +9,7 @@ using OpenTK.Graphics.OpenGL;
 using OpenTK.Input;
 using TachyonExplorer.FileAccess;
 using TachyonExplorer.FileAccess.PFF;
+using TachyonExplorer.Models;
 using TachyonExplorer.UI.Rendering;
 using ButtonState = OpenTK.Input.ButtonState;
 
@@ -39,9 +40,6 @@ namespace TachyonExplorer.UI
             SetViewPort();
             Application.Idle += Application_Idle;
             glControl.Focus();
-
-            var models = Models.Loaders.PAKLoader.LoadModels(fileAccess, fileAccess.GetFiles().First(f => f.ToLower().EndsWith(".pak") && f.ToLower().StartsWith("scara")));
-            renderer = new ModelRenderer(models[0].Item2);
         }
 
         private void Application_Idle(object sender, System.EventArgs e)
@@ -99,7 +97,8 @@ namespace TachyonExplorer.UI
                 
                 GL.MatrixMode(MatrixMode.Modelview);
                 GL.LoadMatrix(camera.GetWorldMatrix());
-                renderer.Render();
+                if(renderer != null)
+                    renderer.Render();
             }
             catch (Exception e)
             {
@@ -143,23 +142,7 @@ namespace TachyonExplorer.UI
 
         private void LoadSettings()
         {
-            TryLoadPFF(AppSettings.GetString("PFF_PATH"));
-            while (fileAccess == null)
-            {
-                OpenFileDialog ofd = new OpenFileDialog();
-                ofd.CheckFileExists = true;
-                ofd.Multiselect = false;
-                ofd.Title = "Choose a PFF File";
-                ofd.Filter = "PFF File (*.pff)|*.pff";
-                if (ofd.ShowDialog() == DialogResult.OK)
-                {
-                    TryLoadPFF(ofd.FileName);
-                }
-                else
-                {
-                    Environment.Exit(0);
-                }
-            }
+            TryLoadArchive(AppSettings.GetString("PFF_PATH"));
             camera.Position = AppSettings.GetPoint3D("CAM_POS", camera.Position);
             camera.Up = AppSettings.GetVector3D("CAM_UP", camera.Up);
             camera.Forward = AppSettings.GetVector3D("CAM_FORWARD", camera.Forward);
@@ -175,7 +158,7 @@ namespace TachyonExplorer.UI
             AppSettings.Save();
         }
 
-        private bool TryLoadPFF(string path)
+        private bool TryLoadArchive(string path)
         {
             try
             {
@@ -185,12 +168,85 @@ namespace TachyonExplorer.UI
                     fileAccess = new PFFFile(path);
                 else
                     return false;
+
+                treeView1.Nodes.Clear();
+                AddModelNodes("PAK");
+                AddModelNodes("OCF");
+
                 return true;
             }
             catch (Exception e)
             {
                 Console.WriteLine(e);
                 return false;
+            }
+        }
+
+        private void AddModelNodes(string ext)
+        {
+            TreeNode node = treeView1.Nodes.Add(ext + "s");
+            node.Expand();
+            var models = fileAccess.GetFiles().Where(f=>f.ToLower().EndsWith("."+ext.ToLower())).ToList();
+            foreach (var model in models.OrderBy(m=>m.ToLower()))
+            {
+                var mNode = node.Nodes.Add(model, model);
+                mNode.Tag = model;
+            }
+        }
+
+        private void loadPFFButton_Click(object sender, EventArgs e)
+        {
+            OpenFileDialog ofd = new OpenFileDialog();
+            ofd.CheckFileExists = true;
+            ofd.Multiselect = false;
+            ofd.Title = "Choose a PFF File";
+            ofd.Filter = "PFF File (*.pff)|*.pff";
+            if (ofd.ShowDialog() == DialogResult.OK)
+            {
+                TryLoadArchive(ofd.FileName);
+            }
+        }
+
+        private void loadDirectoryButton_Click(object sender, EventArgs e)
+        {
+            FolderBrowserDialog fbd = new FolderBrowserDialog();
+            if (fbd.ShowDialog() == DialogResult.OK)
+            {
+                TryLoadArchive(fbd.SelectedPath);
+            }
+        }
+
+        private void button3_Click(object sender, EventArgs e)
+        {
+            camera = new Camera(new Point3D(-10, 0, 0), Vector3D.UnitZ, Vector3D.UnitX);
+        }
+
+        private void treeView1_AfterSelect(object sender, TreeViewEventArgs e)
+        {
+            var node = treeView1.SelectedNode;
+            if (node.Tag as string != null)
+            {
+                string model = node.Tag as string;
+                LoadModel(model);
+            }
+        }
+
+        private void LoadModel(string model)
+        {
+            Model m = null;
+            if (model.EndsWith(".pak", StringComparison.InvariantCultureIgnoreCase))
+                m = Models.Loaders.PAKLoader.LoadModels(fileAccess, model)[0].Item2;
+            if (model.EndsWith(".ocf", StringComparison.InvariantCultureIgnoreCase))
+                m = Models.Loaders.OCFLoader.LoadModel(fileAccess, model);
+
+            if (renderer != null)
+            {
+                renderer.Unload();
+                renderer = null;
+            }
+            if (m != null)
+            {
+                renderer = new ModelRenderer(m);                
             }
         }
     }
