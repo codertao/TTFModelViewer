@@ -1,8 +1,6 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.Linq;
 using Nexus;
-using Nexus.Graphics.Transforms;
 using TachyonExplorer.FileAccess;
 using TachyonExplorer.PAK;
 
@@ -10,22 +8,29 @@ namespace TachyonExplorer.Models.Loaders
 {
     public static class PAKLoader
     {
-        public static List<Tuple<String, Model>> LoadModels(IFileAccess access, string name)
+        public static ModelLoadResult LoadModels(IFileAccess access, string name)
         {
             var pak = new PAKFile(access.GetContent(name));
             return LoadModels(pak);
         }
 
-        public static List<Tuple<String, Model>> LoadModels(PAKFile file)
+        public static ModelLoadResult LoadModels(PAKFile file)
         {
-            var ret = new List<Tuple<String, Model>>();
+            var ret = new ModelLoadResult();
             foreach (var gi in file.FileGroups.Select((g, i) => new {g, i}))
             {
                 foreach (var entry in gi.g.Entries)
                 {
                     string name = gi.i + "_" + entry.OBJ.Name;
-                    Model m = LoadModel(file, entry.OBJ);
-                    ret.Add(new Tuple<string, Model>(name, m));
+                    try
+                    {
+                        Model m = LoadModel(file, entry.OBJ);
+                        ret.Models.Add(new Tuple<string, Model>(name, m));
+                    }
+                    catch (Exception e)
+                    {
+                        ret.Messages.Add("! "+name+": "+e.Message);
+                    }
                 }
             }
             return ret;

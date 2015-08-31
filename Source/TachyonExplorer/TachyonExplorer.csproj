@@ -68,6 +68,7 @@
     <Compile Include="FileAccess\PFF\PFFFooter.cs" />
     <Compile Include="FileAccess\PFF\PFFHeader.cs" />
     <Compile Include="Models\Face.cs" />
+    <Compile Include="Models\Loaders\ModelLoadResult.cs" />
     <Compile Include="Models\Loaders\OCFLoader.cs" />
     <Compile Include="Models\Loaders\PAKLoader.cs" />
     <Compile Include="Models\Material.cs" />
@@ -96,6 +97,7 @@
     <Compile Include="UI\MainForm.Designer.cs">
       <DependentUpon>MainForm.cs</DependentUpon>
     </Compile>
+    <Compile Include="UI\TreeNodes.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="App.config" />

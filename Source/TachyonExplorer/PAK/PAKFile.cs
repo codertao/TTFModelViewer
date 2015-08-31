@@ -17,13 +17,17 @@ namespace TachyonExplorer.PAK
         [IgnoreForPrinting] public int TextureCount { get; set; }
         [IgnoreForPrinting] public List<PAKTexture> Textures { get; set; }
 
-        public PAKFile(byte[] data) : base(data)
+        public PAKFile(byte[] data, bool skipTextures=false) : base(data)
         {
             Header = ReadHeader(0);
             ObjectInfo = ReadInfoList((int)Header.InfoListIndex);
             FileGroups = ReadGroups(ObjectInfo.Value, Header.GroupCount, Header.TextureStart);
             TextureCount = ReadInt32(Header.TextureStart);
-            Textures = ReadTextures(Header.TextureStart + 4, Header.TextureEnd, TextureCount);
+
+            if(skipTextures)
+                Textures = new List<PAKTexture>();
+            else
+                Textures = ReadTextures(Header.TextureStart + 4, Header.TextureEnd, TextureCount);
         }
 
 

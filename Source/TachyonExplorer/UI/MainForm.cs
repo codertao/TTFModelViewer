@@ -28,7 +28,7 @@ namespace TachyonExplorer.UI
         {
             InitializeComponent();
             sw = Stopwatch.StartNew();
-            camera = new Camera(new Point3D(-10,0,0), Vector3D.UnitZ, Vector3D.UnitX);
+            camera = new Camera(new Point3D(0,100,0), Vector3D.UnitZ, -1*Vector3D.UnitY);
             LoadSettings();
             Closing += (sender, args) => SaveSettings();
         }
@@ -117,14 +117,15 @@ namespace TachyonExplorer.UI
         private MouseState prevState;
         private void UpdateState(double ms)
         {
-            float amt = (float)(4*(ms/1000f));
+            float amt = (float)(50 * (ms / 1000f));
+            float rotAmt = (float)(5 * (ms / 1000f));
             var state = Keyboard.GetState();
             if (state.IsKeyDown(Key.A)) camera.MoveRight(-amt);
             if (state.IsKeyDown(Key.D)) camera.MoveRight(amt);
             if (state.IsKeyDown(Key.W)) camera.MoveForward(amt);
             if (state.IsKeyDown(Key.S)) camera.MoveForward(-amt);
-            if (state.IsKeyDown(Key.Q)) camera.RollRight(amt/5);
-            if (state.IsKeyDown(Key.E)) camera.RollRight(-amt/5);
+            if (state.IsKeyDown(Key.Q)) camera.RollRight(rotAmt / 5);
+            if (state.IsKeyDown(Key.E)) camera.RollRight(-rotAmt / 5);
             if (state.IsKeyDown(Key.Z)) camera.MoveUp(amt);
             if (state.IsKeyDown(Key.X)) camera.MoveUp(-amt);
 
@@ -170,7 +171,8 @@ namespace TachyonExplorer.UI
                     return false;
 
                 treeView1.Nodes.Clear();
-                AddModelNodes("PAK");
+
+                AddPAKNodes();
                 AddModelNodes("OCF");
 
                 return true;
@@ -182,12 +184,23 @@ namespace TachyonExplorer.UI
             }
         }
 
+        private void AddPAKNodes()
+        {
+            TreeNode node = treeView1.Nodes.Add("PAKs");
+            node.Expand();
+            var models = fileAccess.GetFiles().Where(f => f.EndsWith(".pak", StringComparison.InvariantCultureIgnoreCase)).ToList();
+            foreach (var model in models.OrderBy(m => m.ToLower()))
+            {
+                node.Nodes.Add(new PAKTreeNode(fileAccess, model));
+            }
+        }
+
         private void AddModelNodes(string ext)
         {
             TreeNode node = treeView1.Nodes.Add(ext + "s");
             node.Expand();
-            var models = fileAccess.GetFiles().Where(f=>f.ToLower().EndsWith("."+ext.ToLower())).ToList();
-            foreach (var model in models.OrderBy(m=>m.ToLower()))
+            var models = fileAccess.GetFiles().Where(f => f.ToLower().EndsWith("." + ext.ToLower())).ToList();
+            foreach (var model in models.OrderBy(m => m.ToLower()))
             {
                 var mNode = node.Nodes.Add(model, model);
                 mNode.Tag = model;
@@ -216,38 +229,45 @@ namespace TachyonExplorer.UI
             }
         }
 
-        private void button3_Click(object sender, EventArgs e)
+        private void resetCameraButton_Click(object sender, EventArgs e)
         {
-            camera = new Camera(new Point3D(-10, 0, 0), Vector3D.UnitZ, Vector3D.UnitX);
+            camera = new Camera(new Point3D(0, 100, 0), Vector3D.UnitZ, -1 * Vector3D.UnitY);
         }
 
         private void treeView1_AfterSelect(object sender, TreeViewEventArgs e)
         {
-            var node = treeView1.SelectedNode;
-            if (node.Tag as string != null)
+            var node = e.Node;
+            if (node is ModelTreeNode)
             {
-                string model = node.Tag as string;
-                LoadModel(model);
+                LoadModel(((ModelTreeNode)node).GetModel());
+            } 
+            else if (node is FileTreeNode)
+            {
+                ((FileTreeNode)node).LoadChildren();
+                var modelNode = node.Nodes.OfType<ModelTreeNode>().FirstOrDefault();
+                if(modelNode != null)
+                    LoadModel(modelNode.GetModel());
             }
         }
 
-        private void LoadModel(string model)
+        private void LoadModel(Model model)
         {
-            Model m = null;
-            if (model.EndsWith(".pak", StringComparison.InvariantCultureIgnoreCase))
-                m = Models.Loaders.PAKLoader.LoadModels(fileAccess, model)[0].Item2;
-            if (model.EndsWith(".ocf", StringComparison.InvariantCultureIgnoreCase))
-                m = Models.Loaders.OCFLoader.LoadModel(fileAccess, model);
-
             if (renderer != null)
             {
                 renderer.Unload();
                 renderer = null;
             }
-            if (m != null)
+            if (model != null)
             {
-                renderer = new ModelRenderer(m);                
+                renderer = new ModelRenderer(model);
             }
+        }
+
+        private void treeView1_BeforeExpand(object sender, TreeViewCancelEventArgs e)
+        {
+            var node = e.Node;
+            if(node is FileTreeNode)
+                ((FileTreeNode)node).LoadChildren();
         }
     }
 }
